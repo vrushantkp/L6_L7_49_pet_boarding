@@ -1,15 +1,57 @@
 def parse_booking(text):
-    pet, days = text.split(':')
-    return pet.strip().title(), float(days)
+    if not isinstance(text, str):
+        return None
+    parts = text.split(':')
+    if len(parts) != 2:
+        return None
+    pet = parts[0].strip()
+    days_str = parts[1].strip()
+    if not pet:
+        return None
+    try:
+        days = float(days_str)
+        if days < 0 or days != days:  # NaN check
+            return None
+        return pet.title(), days
+    except (ValueError, TypeError):
+        return None
+
 
 def stay_average(days_csv):
-    values = [int(r) for r in days_csv.split(',')]
+    if not isinstance(days_csv, str):
+        return 0
+    parts = [r.strip() for r in days_csv.split(',') if r.strip()]
+    if not parts:
+        return 0
+    values = []
+    for r in parts:
+        try:
+            val = int(r)
+            if val >= 0:
+                values.append(val)
+        except (ValueError, TypeError):
+            continue
+    if not values:
+        return 0
     return sum(values) // len(values)
 
+
 def payable_fee(text):
-    fee, discount = text.split('|')
-    total = float(fee) * 1.18 - float(discount)
-    return max(total, 0)
+    if not isinstance(text, str):
+        return 0.0
+    parts = text.split('|')
+    if len(parts) != 2:
+        return 0.0
+    try:
+        fee = float(parts[0].strip())
+        discount = float(parts[1].strip())
+        if fee < 0 or discount < 0 or fee != fee or discount != discount:
+            return 0.0
+        total = fee * 1.18 - discount
+        return round(max(total, 0.0), 2)
+    except (ValueError, TypeError):
+        return 0.0
+
 
 def main():
     print("==== Running parse_booking ====")
@@ -26,6 +68,7 @@ def main():
     user_input = input("Enter fee|discount (e.g. 1500|100): ")
     result = payable_fee(user_input)
     print("Payable Fee:", result)
+
 
 if __name__ == "__main__":
     main()
